@@ -1941,7 +1941,12 @@ class NewtonManager(PhysicsManager):
             cls._scene_data_mapping = scene_data_provider.create_mapping(body_paths)
 
         cls._scene_data.transforms = cls._state_0.body_q
-        scene_data_provider.get_transforms(cls._scene_data, mapping=cls._scene_data_mapping)
+        # allow_passthrough=False forces a copy into _state_0.body_q; the default zero-copy
+        # passthrough would rebind the scratch struct instead and leave body_q stale (frozen
+        # view) whenever the body ordering is identity (e.g. single-body / non-cloned scenes).
+        scene_data_provider.get_transforms(
+            cls._scene_data, mapping=cls._scene_data_mapping, allow_passthrough=False
+        )
 
     @staticmethod
     def _resolve_scene_data_body_paths(body_paths: list[str | None], stage) -> list[str | None]:
